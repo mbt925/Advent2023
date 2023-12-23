@@ -63,20 +63,6 @@ sealed interface ComModule {
 
 fun main() {
 
-    fun greatestCommonDivisor(a: Long, b: Long): Long {
-        return if (b == 0L) a else greatestCommonDivisor(b, a % b)
-    }
-
-    fun leastCommonMultiple(a: Long, b: Long): Long {
-        return if (a == 0L || b == 0L) 0 else (a * b) / greatestCommonDivisor(a, b)
-    }
-
-    fun leastCommonMultiple(numbers: List<Int>): Long {
-        return numbers.fold(1L) { acc, num ->
-            leastCommonMultiple(acc, num.toLong())
-        }
-    }
-
     data class Connection(
         val fromModule: ComModule,
         val to: List<String>,
