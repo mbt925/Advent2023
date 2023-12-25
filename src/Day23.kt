@@ -1,3 +1,5 @@
+import java.util.LinkedList
+
 fun main() {
 
     data class Coord(
@@ -32,8 +34,48 @@ fun main() {
         }
     }
 
+    fun List<String>.findPathToOtherNodes(from: Coord, nodes: List<Coord>, slopesAllowed: Boolean): Map<Coord, Int> {
+        val visited = mutableSetOf(from)
+        val answer = mutableMapOf<Coord, Int>()
+        val queue = LinkedList<Pair<Coord, Int>>()
+        queue.add(from to 0)
+
+        while (queue.isNotEmpty()) {
+            val (coord, distance) = queue.remove()
+            if (coord != from && coord in nodes) answer[coord] = distance
+            else {
+                coord.neighbors(this, slopesAllowed)
+                    .filterNot { it in visited }
+                    .forEach {
+                        visited.add(it)
+                        queue.add(it to distance + 1)
+                    }
+            }
+        }
+        return answer
+    }
+
+    fun List<String>.toGraph(slopesAllowed: Boolean): Map<Coord, Map<Coord, Int>> {
+        val start = Coord(0, this[0].indexOfFirst { it == '.' })
+        val destination = Coord(lastIndex, this[lastIndex].indexOfFirst { it == '.' })
+        val nodes = mutableListOf<Coord>()
+        nodes.add(start)
+
+        for (row in indices) {
+            for (col in this[0].indices) {
+                val coord = Coord(row, col)
+                if (this@toGraph[row][col] == '#') continue
+                val neighbors = coord.neighbors(this, true)
+                if (neighbors.size > 2) nodes.add(coord)
+            }
+        }
+
+        nodes.add(destination)
+        return nodes.associateWith { findPathToOtherNodes(it, nodes, slopesAllowed) }
+    }
+
     // dfs
-    fun List<String>.longestPath(
+    fun Map<Coord, Map<Coord, Int>>.longestPath(
         current: Coord,
         destination: Coord,
         visited: MutableSet<Coord>,
@@ -42,13 +84,13 @@ fun main() {
     ): Int {
         visited.add(current)
         val newPathLen = if (current == destination) {
-            currPathLen + 1
+            currPathLen
         } else {
-            val neighbors = current.neighbors(this, slopesAllowed).filterNot { visited.contains(it) }
-            neighbors.maxOfOrNull { longestPath(it, destination, visited, currPathLen + 1, slopesAllowed) }
-                ?: Int.MIN_VALUE
+            val neighbors = this[current]!!.keys.filterNot { visited.contains(it) }
+            neighbors.maxOfOrNull {
+                longestPath(it, destination, visited, currPathLen + this[current]?.get(it)!!, slopesAllowed)
+            } ?: Int.MIN_VALUE
         }
-
         visited.remove(current)
         return newPathLen
     }
@@ -58,7 +100,7 @@ fun main() {
         val start = Coord(0, this[0].indexOfFirst { it == '.' })
         val destination = Coord(lastIndex, this[lastIndex].indexOfFirst { it == '.' })
 
-        return longestPath(start, destination, visited, 0, slopesAllowed) - 1
+        return toGraph(slopesAllowed).longestPath(start, destination, visited, 0, slopesAllowed)
     }
 
     fun part1(input: List<String>): Int {
