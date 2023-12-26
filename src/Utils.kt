@@ -9,6 +9,8 @@ import kotlin.math.absoluteValue
  */
 fun readInput(name: String) = Path("src/$name.txt").readLines()
 
+const val e = 1e-7
+
 /**
  * Converts string to md5 hash.
  */
