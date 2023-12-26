@@ -126,6 +126,7 @@ fun main() {
 
                     // assume the stone is stationary with a previous velocity of sv:(svx,svy),
                     // then all lines velocity can be modified like lv:(lvx-svx, lvy-svy)
+                    // as a result, we can expect all the lines to cross the stone at a single point
                     val modifiedLine1 = line1.project(Coord3D(vxd, vyd, vzd))
                     val modifiedLine2 = line2.project(Coord3D(vxd, vyd, vzd))
 
